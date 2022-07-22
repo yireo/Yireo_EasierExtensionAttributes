@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:redefine schemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
+        <xs:complexType name="attributeType">
+            <xs:complexContent mixed="false">
+                <xs:extension base="attributeType">
+                    <xs:sequence>
+                        <xs:element type="attributeStorageType" name="storage" minOccurs="0" />
+                    </xs:sequence>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+    </xs:redefine>
+    <xs:complexType name="attributeStorageType">
+        <xs:sequence>
+            <xs:element type="attributeStorageColumnType" name="column" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="attributeStorageColumnType">
+        <xs:attribute type="xs:string" name="name" use="required"/>
+    </xs:complexType>
+</xs:schema>
