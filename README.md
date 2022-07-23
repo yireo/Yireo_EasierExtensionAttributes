@@ -11,6 +11,8 @@
 For an example implementation, see [YireoTraining_EasierExtensionAttributesExample](https://github.com/yireo-training/YireoTraining_EasierExtensionAttributesExample), more specifically its `easier_extension_attributes.xml` which complements the regular `extension_attributes.xml`. For extending the MSI Source entity, it adds a column `example` to the `source` database table, which is then automatically filled with the Yireo EasierExtensionAttributes module.
 
 ## TODO
+- Integration tests for `getList`, `save` and `getById`
+- Integration tests for additional repositories
 - Connect your own simple Extension Attribute with a separate table
 - Connect your own Extension Attribute with a custom repository
 - Connect your own complex Extension Attribute
