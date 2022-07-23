@@ -31,8 +31,8 @@ class AddExtensionAttributesToEntity
      */
     public function afterGet($target, ExtensibleDataInterface $entity): ExtensibleDataInterface
     {
-        $easierExtensionAttributes = $this->getExtensionAttributesByEntity($entity);
-        foreach ($easierExtensionAttributes as $extensionAttribute) {
+        $extensionAttributes = $this->getExtensionAttributesByEntity($entity);
+        foreach ($extensionAttributes as $extensionAttribute) {
             $this->copyDataPropertyToExtensionAttribute($entity, $extensionAttribute);
         }
         

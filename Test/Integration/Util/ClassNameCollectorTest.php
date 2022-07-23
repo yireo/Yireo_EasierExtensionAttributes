@@ -3,7 +3,6 @@
 namespace Yireo\EasierExtensionAttributes\Test\Integration\Util;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\Inventory\Model\Source;
 use Magento\InventoryApi\Api\Data\SourceInterface;
 use PHPUnit\Framework\TestCase;
 use Yireo\EasierExtensionAttributes\Util\ClassNameCollector;

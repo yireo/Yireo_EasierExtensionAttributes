@@ -58,7 +58,7 @@ class ExtensionAttribute implements ExtensionAttributeInterface
      */
     public function isStorageColumn(): bool
     {
-        return !empty($this->storage['column']);
+        return !empty($this->storage[0]['column']);
     }
     
     /**
@@ -66,6 +66,6 @@ class ExtensionAttribute implements ExtensionAttributeInterface
      */
     public function getStorageColumn(): string
     {
-        return $this->storage['column'] ?? '';
+        return $this->storage[0]['column'][0]['@attributes']['name'] ?? '';
     }
 }

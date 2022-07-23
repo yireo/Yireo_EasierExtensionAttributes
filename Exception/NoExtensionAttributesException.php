@@ -4,6 +4,6 @@ namespace Yireo\EasierExtensionAttributes\Exception;
 
 use RuntimeException;
 
-class UnknownAttributeType extends RuntimeException
+class NoExtensionAttributesException extends RuntimeException
 {
 }

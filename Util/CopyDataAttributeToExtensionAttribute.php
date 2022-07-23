@@ -3,6 +3,7 @@
 namespace Yireo\EasierExtensionAttributes\Util;
 
 use Magento\Framework\Api\ExtensibleDataInterface;
+use Yireo\EasierExtensionAttributes\Exception\NoExtensionAttributesException;
 
 class CopyDataAttributeToExtensionAttribute
 {
@@ -28,21 +29,24 @@ class CopyDataAttributeToExtensionAttribute
      * @param string $attributeType
      * @param string $columnName
      * @return void
+     * @throws NoExtensionAttributesException
      */
-    public function execute(ExtensibleDataInterface $entity, string $attributeCode, string $attributeType, string $columnName)
-    {
+    public function execute(
+        ExtensibleDataInterface $entity,
+        string $attributeCode,
+        string $attributeType,
+        string $columnName
+    ) {
         $extensionAttributes = $entity->getExtensionAttributes();
         if (!$extensionAttributes) {
-            return;
-        }
-        
-        if (!$entity->hasData($attributeCode)) {
-            return;
+            $msg = 'No extension attributes found for entity "' . get_class($entity) . '"';
+            throw new NoExtensionAttributesException($msg);
         }
         
         $attributeSetter = $this->snakeCaseCamelCase->toSetter($attributeCode);
         if (!method_exists($extensionAttributes, $attributeSetter)) {
-            return;
+            $msg = 'No method "' . $attributeSetter . '" found for entity "' . get_class($entity) . '"';
+            throw new NoExtensionAttributesException($msg);
         }
         
         $attributeValue = $entity->getData($columnName);
