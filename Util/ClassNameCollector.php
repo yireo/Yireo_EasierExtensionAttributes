@@ -2,25 +2,31 @@
 
 namespace Yireo\EasierExtensionAttributes\Util;
 
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
+use Throwable;
 
 class ClassNameCollector
 {
-    private ObjectManager $objectManager;
+    private ObjectManagerInterface $objectManager;
     
     public function __construct(
-        ObjectManager $objectManager
+        ObjectManagerInterface $objectManager
     ) {
         $this->objectManager = $objectManager;
     }
     
     /**
-     * @param string $instance
+     * @param string $instanceName
      * @return string[]
      */
     public function getClassNames(string $instanceName): array
     {
-        $instance = $this->objectManager->get($instanceName);
+        try {
+            $instance = $this->objectManager->get($instanceName);
+        } catch (Throwable $throwable) {
+            return [];
+        }
+        
         $classNames = [$instanceName];
         $classNames[] = get_class($instance);
         $classNames = array_merge($classNames, class_parents($instance) ?? []);
