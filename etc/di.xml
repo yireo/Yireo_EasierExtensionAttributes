@@ -23,8 +23,10 @@
                 type="Yireo\EasierExtensionAttributes\Plugin\AddExtensionAttributesToEntity"/>
     </type>
 
+    <!--
     <type name="Magento\Customer\Api\CustomerRepositoryInterface">
         <plugin name="Yireo_EasierExtensionAttributes::AddExtensionAttributesToAnyEntity"
                 type="Yireo\EasierExtensionAttributes\Plugin\AddExtensionAttributesToEntity"/>
     </type>
+    -->
 </config>
