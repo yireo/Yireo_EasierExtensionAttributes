@@ -1,21 +1,21 @@
 {
-  "name": "yireo/magento2-easier-extension-attributes",
-  "version": "1.0.0",
-  "description": "N/A",
-  "type": "magento2-module",
-  "require": {
-    "php": "^8.1",
-    "magento/framework": "^103.0"
-  },
-  "license": [
-    "OSL-3.0"
-  ],
-  "autoload": {
-    "files": [
-      "registration.php"
+    "name": "yireo/magento2-easier-extension-attributes",
+    "version": "1.0.0",
+    "description": "N/A",
+    "type": "magento2-module",
+    "require": {
+        "php": ">=8.2 <8.6",
+        "magento/framework": "^103.0"
+    },
+    "license": [
+        "OSL-3.0"
     ],
-    "psr-4": {
-      "Yireo\\EasierExtensionAttributes\\": ""
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Yireo\\EasierExtensionAttributes\\": ""
+        }
     }
-  }
 }
