@@ -2,27 +2,24 @@
 
 namespace Yireo\EasierExtensionAttributes\Test\Integration\Config;
 
-use Magento\Framework\App\ObjectManager;
 use PHPUnit\Framework\TestCase;
-use Yireo\EasierExtensionAttributes\Config\Provider;
+use Yireo\EasierExtensionAttributes\Test\Integration\Stub\ExampleEntity;
+use Yireo\EasierExtensionAttributes\Test\Integration\Stub\FixtureProviderFactory;
 
 class ProviderTest extends TestCase
 {
     public function testGetExtensionAttributes()
     {
-        $provider = ObjectManager::getInstance()->get(Provider::class);
+        $provider = FixtureProviderFactory::create();
         $extensionAttributes = $provider->getExtensionAttributes();
-        $this->assertNotEmpty($extensionAttributes);
-        
-        foreach ($extensionAttributes as $extensionAttribute) {
-            $this->assertNotEmpty($extensionAttribute->getAttributeCode());
-            $this->assertNotEmpty($extensionAttribute->getAttributeType());
-            $this->assertNotEmpty($extensionAttribute->getEntityClass());
-            $this->assertNotEmpty($extensionAttribute->getStorage());
-            
-            if ($extensionAttribute->isStorageColumn()) {
-                $this->assertNotEmpty($extensionAttribute->getStorageColumn());
-            }
-        }
+        $this->assertCount(1, $extensionAttributes);
+
+        $extensionAttribute = array_shift($extensionAttributes);
+        $this->assertSame('example', $extensionAttribute->getAttributeCode());
+        $this->assertSame('boolean', $extensionAttribute->getAttributeType());
+        $this->assertSame(ExampleEntity::class, $extensionAttribute->getEntityClass());
+        $this->assertNotEmpty($extensionAttribute->getStorage());
+        $this->assertTrue($extensionAttribute->isStorageColumn());
+        $this->assertSame('example', $extensionAttribute->getStorageColumn());
     }
 }

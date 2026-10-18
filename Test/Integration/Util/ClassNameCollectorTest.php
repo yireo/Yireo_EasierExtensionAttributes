@@ -3,7 +3,7 @@
 namespace Yireo\EasierExtensionAttributes\Test\Integration\Util;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\InventoryApi\Api\Data\SourceInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
 use PHPUnit\Framework\TestCase;
 use Yireo\EasierExtensionAttributes\Util\ClassNameCollector;
 
@@ -11,7 +11,7 @@ class ClassNameCollectorTest extends TestCase
 {
     public function testGetClassNames()
     {
-        $interfaceName = SourceInterface::class;
+        $interfaceName = ProductInterface::class;
         $classNameCollector = ObjectManager::getInstance()->get(ClassNameCollector::class);
         $classNames = $classNameCollector->getClassNames($interfaceName);
         $realInstance = ObjectManager::getInstance()->get($interfaceName);

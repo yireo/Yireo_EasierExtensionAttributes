@@ -3,8 +3,8 @@
 namespace Yireo\EasierExtensionAttributes\Test\Integration\Util;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\InventoryApi\Api\Data\SourceInterface;
 use PHPUnit\Framework\TestCase;
+use Yireo\EasierExtensionAttributes\Test\Integration\Stub\ExampleEntity;
 use Yireo\EasierExtensionAttributes\Util\CopyExtensionAttributeToDataAttribute;
 
 class CopyExtensionAttributeToDataAttributeTest extends TestCase
@@ -12,9 +12,9 @@ class CopyExtensionAttributeToDataAttributeTest extends TestCase
     public function testExecute()
     {
         $target = ObjectManager::getInstance()->get(CopyExtensionAttributeToDataAttribute::class);
-        $entity = ObjectManager::getInstance()->get(SourceInterface::class);
+        $entity = new ExampleEntity();
         $entity->getExtensionAttributes()->setExample(42);
         $target->execute($entity, 'example', 'example');
-        $this->assertEquals(42, $entity->getExample());
+        $this->assertSame('42', $entity->getData('example'));
     }
 }
