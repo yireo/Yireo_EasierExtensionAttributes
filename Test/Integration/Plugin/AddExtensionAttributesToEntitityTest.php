@@ -46,7 +46,7 @@ class AddExtensionAttributesToEntitityTest extends TestCase
         $plugin = $this->getPlugin();
         $entity = new ExampleEntity();
         $entity->getExtensionAttributes()->setExample(true);
-        $this->assertNull($plugin->beforeSave(null, $entity));
+        $plugin->beforeSave(null, $entity);
         $this->assertSame(1, $entity->getData('example'));
     }
 

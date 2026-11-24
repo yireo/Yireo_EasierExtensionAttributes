@@ -29,7 +29,7 @@ class Provider
     public function getExtensionAttributes(): array
     {
         if ($this->extensionAttributes === null) {
-            $this->extensionAttributes = $this->parse($this->configData->get());
+            $this->extensionAttributes = $this->parse($this->configData->get(null));
         }
 
         return $this->extensionAttributes;
