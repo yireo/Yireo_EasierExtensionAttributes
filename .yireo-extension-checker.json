@@ -1,0 +1,7 @@
+{
+    "ignore": [
+        "Magento_InventoryApi",
+        "magento/module-inventory-api",
+        "mage-os/module-inventory-api"
+    ]
+}
