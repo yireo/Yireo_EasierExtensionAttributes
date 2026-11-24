@@ -12,13 +12,6 @@ use Yireo\EasierExtensionAttributes\Config\SchemaLocator;
 class Filesystem extends CoreFilesystem
 {
     /**
-     * List of id attributes for merge
-     *
-     * @var array
-     */
-    //protected $_idAttributes = ['/config/extension_attributes' => 'id'];
-    
-    /**
      * @param FileResolverInterface $fileResolver
      * @param ConverterInterface $converter
      * @param SchemaLocator $schemaLocator
@@ -34,7 +27,10 @@ class Filesystem extends CoreFilesystem
         SchemaLocator $schemaLocator,
         ValidationStateInterface $validationState,
         $fileName = 'easier_extension_attributes.xml',
-        $idAttributes = [],
+        $idAttributes = [
+            '/config/extension_attributes' => 'for',
+            '/config/extension_attributes/attribute' => 'code',
+        ],
         $domDocumentClass = Dom::class,
         $defaultScope = 'global'
     ) {

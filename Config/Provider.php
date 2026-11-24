@@ -2,49 +2,101 @@
 
 namespace Yireo\EasierExtensionAttributes\Config;
 
-use Magento\Framework\Config\ReaderInterface;
+use Magento\Framework\Config\DataInterface;
+use Psr\Log\LoggerInterface;
 use Yireo\EasierExtensionAttributes\ExtensionAttribute\ExtensionAttribute;
 use Yireo\EasierExtensionAttributes\ExtensionAttribute\ExtensionAttributeFactory;
+use Yireo\EasierExtensionAttributes\Util\NameValidator;
 
 class Provider
 {
+    /**
+     * @var ExtensionAttribute[]|null
+     */
+    private ?array $extensionAttributes = null;
+
     public function __construct(
-        private ReaderInterface $configReader,
-        private ExtensionAttributeFactory $extensionAttributeFactory
+        private readonly DataInterface $configData,
+        private readonly ExtensionAttributeFactory $extensionAttributeFactory,
+        private readonly NameValidator $nameValidator,
+        private readonly LoggerInterface $logger
     ) {
     }
-    
+
     /**
      * @return ExtensionAttribute[]
      */
     public function getExtensionAttributes(): array
     {
-        $config = $this->configReader->read();
-        
-        if (empty($config['config'][0]['extension_attributes'])) {
+        if ($this->extensionAttributes === null) {
+            $this->extensionAttributes = $this->parse($this->configData->get());
+        }
+
+        return $this->extensionAttributes;
+    }
+
+    /**
+     * @param mixed $config
+     * @return ExtensionAttribute[]
+     */
+    private function parse(mixed $config): array
+    {
+        $blocks = $config['config'][0]['extension_attributes'] ?? [];
+        if (!is_array($blocks)) {
             return [];
         }
-        
+
         $extensionAttributes = [];
-        foreach ($config['config'][0]['extension_attributes'] as $attribute) {
-            $entityClass = $attribute['@attributes']['for'];
-            $storage = $attribute['attribute'][0]['storage'];
-            $attributeCode = $attribute['attribute'][0]['@attributes']['code'];
-            $attributeType = $attribute['attribute'][0]['@attributes']['type'];
-            
-            $storageDefinition = [];
-            if (isset($storage[0]['column'])) {
-                $storageDefinition['column'] = $storage[0]['column'][0]['@attributes'];
+        foreach ($blocks as $block) {
+            $entityClass = is_array($block) ? (string)($block['@attributes']['for'] ?? '') : '';
+            if ($entityClass === '' || (!class_exists($entityClass) && !interface_exists($entityClass))) {
+                $this->warn('Unknown entity class "' . $entityClass . '"');
+                continue;
             }
-    
-            $extensionAttributes[] = $this->extensionAttributeFactory->create([
-                'attributeCode' => $attributeCode,
-                'attributeType' => $attributeType,
-                'entityClass' => $entityClass,
-                'storage' => $storage
-            ]);
+
+            $attributes = $block['attribute'] ?? [];
+            foreach (is_array($attributes) ? $attributes : [] as $attribute) {
+                $extensionAttribute = $this->createExtensionAttribute($entityClass, $attribute);
+                if ($extensionAttribute instanceof ExtensionAttribute) {
+                    $extensionAttributes[] = $extensionAttribute;
+                }
+            }
         }
-        
+
         return $extensionAttributes;
+    }
+
+    private function createExtensionAttribute(string $entityClass, mixed $attribute): ?ExtensionAttribute
+    {
+        if (!is_array($attribute)) {
+            return null;
+        }
+
+        $attributeCode = (string)($attribute['@attributes']['code'] ?? '');
+        if (!$this->nameValidator->isValidAttributeCode($attributeCode)) {
+            $this->warn('Invalid attribute code "' . $attributeCode . '" for "' . $entityClass . '"');
+            return null;
+        }
+
+        $storage = is_array($attribute['storage'] ?? null) ? $attribute['storage'] : [];
+        if (isset($storage[0]['column'])) {
+            $columnName = (string)($storage[0]['column'][0]['@attributes']['name'] ?? '');
+            if (!$this->nameValidator->isValidColumnName($columnName)) {
+                $this->warn('Invalid column "' . $columnName . '" for attribute "' . $attributeCode . '"');
+                return null;
+            }
+        }
+
+        return $this->extensionAttributeFactory->create([
+            'attributeCode' => $attributeCode,
+            'attributeType' => (string)($attribute['@attributes']['type'] ?? ''),
+            'entityClass' => $entityClass,
+            'storage' => $storage,
+        ]);
+    }
+
+    private function warn(string $message): void
+    {
+        $this->logger->warning('Yireo_EasierExtensionAttributes: ' . $message . ', skipping');
     }
 }

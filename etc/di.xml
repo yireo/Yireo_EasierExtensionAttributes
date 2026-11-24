@@ -1,10 +1,16 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Yireo\EasierExtensionAttributes\Config\Data" type="Magento\Framework\Config\Data">
+        <arguments>
+            <argument name="reader" xsi:type="object">Yireo\EasierExtensionAttributes\Config\Reader\Filesystem</argument>
+            <argument name="cacheId" xsi:type="string">yireo_easier_extension_attributes</argument>
+        </arguments>
+    </virtualType>
+
     <type name="Yireo\EasierExtensionAttributes\Config\Provider">
         <arguments>
-            <argument name="configReader" xsi:type="object">Yireo\EasierExtensionAttributes\Config\Reader\Filesystem
-            </argument>
+            <argument name="configData" xsi:type="object">Yireo\EasierExtensionAttributes\Config\Data</argument>
         </arguments>
     </type>
 

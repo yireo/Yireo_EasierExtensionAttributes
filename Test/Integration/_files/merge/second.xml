@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Yireo_EasierExtensionAttributes:etc/easier_extension_attributes.xsd">
+    <extension_attributes for="Yireo\EasierExtensionAttributes\Test\Integration\Stub\ExampleOtherEntity">
+        <attribute code="other" type="string">
+            <storage>
+                <column name="other"/>
+            </storage>
+        </attribute>
+    </extension_attributes>
+    <extension_attributes for="Yireo\EasierExtensionAttributes\Test\Integration\Stub\ExampleEntity">
+        <attribute code="third" type="string">
+            <storage>
+                <column name="third"/>
+            </storage>
+        </attribute>
+    </extension_attributes>
+</config>
