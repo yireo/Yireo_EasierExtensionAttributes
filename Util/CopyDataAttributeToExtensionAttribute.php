@@ -3,54 +3,57 @@
 namespace Yireo\EasierExtensionAttributes\Util;
 
 use Magento\Framework\Api\ExtensibleDataInterface;
-use Yireo\EasierExtensionAttributes\Exception\NoExtensionAttributesException;
+use Magento\Framework\Api\ExtensionAttributesInterface;
+use Psr\Log\LoggerInterface;
 
 class CopyDataAttributeToExtensionAttribute
 {
-    private SnakeCaseCamelCase $snakeCaseCamelCase;
-    private Caster $caster;
-    
     /**
-     * @param SnakeCaseCamelCase $snakeCaseCamelCase
-     * @param Caster $caster
+     * @var bool[]
      */
+    private array $reported = [];
+
     public function __construct(
-        SnakeCaseCamelCase $snakeCaseCamelCase,
-        Caster $caster
+        private readonly SnakeCaseCamelCase $snakeCaseCamelCase,
+        private readonly Caster $caster,
+        private readonly LoggerInterface $logger
     ) {
-        $this->snakeCaseCamelCase = $snakeCaseCamelCase;
-        $this->caster = $caster;
     }
-    
-    /**
-     *
-     * @param ExtensibleDataInterface $entity
-     * @param string $attributeCode
-     * @param string $attributeType
-     * @param string $columnName
-     * @return void
-     * @throws NoExtensionAttributesException
-     */
+
     public function execute(
         ExtensibleDataInterface $entity,
         string $attributeCode,
         string $attributeType,
         string $columnName
-    ) {
+    ): void {
         $extensionAttributes = $entity->getExtensionAttributes();
-        if (!$extensionAttributes) {
-            $msg = 'No extension attributes found for entity "' . get_class($entity) . '"';
-            throw new NoExtensionAttributesException($msg);
-        }
-        
         $attributeSetter = $this->snakeCaseCamelCase->toSetter($attributeCode);
-        if (!method_exists($extensionAttributes, $attributeSetter)) {
-            $msg = 'No method "' . $attributeSetter . '" found for entity "' . get_class($entity) . '"';
-            throw new NoExtensionAttributesException($msg);
+        if (!$extensionAttributes instanceof ExtensionAttributesInterface
+            || !is_callable([$extensionAttributes, $attributeSetter])
+            || !is_callable([$entity, 'getData'])) {
+            $this->reportOnce(get_class($entity), $attributeSetter);
+            return;
         }
-        
+
         $attributeValue = $entity->getData($columnName);
-        $attributeValue = $this->caster->cast($attributeType, $attributeValue);
-        call_user_func([$extensionAttributes, $attributeSetter], $attributeValue);
+        if ($attributeValue !== null) {
+            $attributeValue = $this->caster->cast($attributeType, $attributeValue);
+        }
+
+        $extensionAttributes->$attributeSetter($attributeValue);
+    }
+
+    private function reportOnce(string $entityClass, string $attributeSetter): void
+    {
+        $key = $entityClass . '::' . $attributeSetter;
+        if (isset($this->reported[$key])) {
+            return;
+        }
+
+        $this->reported[$key] = true;
+        $this->logger->warning(
+            'Yireo_EasierExtensionAttributes: No extension attribute setter "' . $attributeSetter
+            . '" found for entity "' . $entityClass . '"'
+        );
     }
 }

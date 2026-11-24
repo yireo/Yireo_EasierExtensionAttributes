@@ -2,6 +2,7 @@
 
 namespace Yireo\EasierExtensionAttributes\Test\Integration\Plugin;
 
+use Magento\Framework\Api\SearchResults;
 use Magento\Framework\App\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Yireo\EasierExtensionAttributes\ExtensionAttribute\ExtensionAttributeListing;
@@ -20,13 +21,41 @@ class AddExtensionAttributesToEntitityTest extends TestCase
         $this->assertSame(true, $entity->getExtensionAttributes()->getExample());
     }
 
+    public function testAfterGetKeepsNullValue()
+    {
+        $plugin = $this->getPlugin();
+        $entity = $plugin->afterGet(null, new ExampleEntity());
+        $this->assertNull($entity->getExtensionAttributes()->getExample());
+    }
+
+    public function testAfterGetList()
+    {
+        $plugin = $this->getPlugin();
+        $first = new ExampleEntity(['example' => 1]);
+        $second = new ExampleEntity(['example' => 0]);
+        $searchResults = new SearchResults();
+        $searchResults->setItems([$first, $second]);
+
+        $plugin->afterGetList(null, $searchResults);
+        $this->assertTrue($first->getExtensionAttributes()->getExample());
+        $this->assertFalse($second->getExtensionAttributes()->getExample());
+    }
+
     public function testBeforeSave()
     {
         $plugin = $this->getPlugin();
         $entity = new ExampleEntity();
         $entity->getExtensionAttributes()->setExample(true);
-        [$entity] = $plugin->beforeSave(null, $entity);
-        $this->assertSame('1', $entity->getData('example'));
+        $this->assertNull($plugin->beforeSave(null, $entity));
+        $this->assertSame(1, $entity->getData('example'));
+    }
+
+    public function testBeforeSaveKeepsExistingValueWhenExtensionAttributeIsNotSet()
+    {
+        $plugin = $this->getPlugin();
+        $entity = new ExampleEntity(['example' => 1]);
+        $plugin->beforeSave(null, $entity);
+        $this->assertSame(1, $entity->getData('example'));
     }
 
     private function getPlugin(): AddExtensionAttributesToEntity

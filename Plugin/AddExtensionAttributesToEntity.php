@@ -4,7 +4,6 @@ namespace Yireo\EasierExtensionAttributes\Plugin;
 
 use Magento\Framework\Api\ExtensibleDataInterface;
 use Magento\Framework\Api\SearchResultsInterface;
-use Yireo\EasierExtensionAttributes\ExtensionAttribute\ExtensionAttribute;
 use Yireo\EasierExtensionAttributes\ExtensionAttribute\ExtensionAttributeInterface;
 use Yireo\EasierExtensionAttributes\ExtensionAttribute\ExtensionAttributeListing;
 use Yireo\EasierExtensionAttributes\Util\CopyDataAttributeToExtensionAttribute;
@@ -12,85 +11,21 @@ use Yireo\EasierExtensionAttributes\Util\CopyExtensionAttributeToDataAttribute;
 
 class AddExtensionAttributesToEntity
 {
-    /**
-     * @param CopyDataAttributeToExtensionAttribute $copyDataAttributeToExtensionAttribute
-     * @param CopyExtensionAttributeToDataAttribute $copyExtensionAttributeToDataAttribute
-     * @param ExtensionAttributeListing $extensionAttributeListing
-     */
     public function __construct(
-        private CopyDataAttributeToExtensionAttribute $copyDataAttributeToExtensionAttribute,
-        private CopyExtensionAttributeToDataAttribute $copyExtensionAttributeToDataAttribute,
-        private ExtensionAttributeListing $extensionAttributeListing
+        private readonly CopyDataAttributeToExtensionAttribute $copyDataAttributeToExtensionAttribute,
+        private readonly CopyExtensionAttributeToDataAttribute $copyExtensionAttributeToDataAttribute,
+        private readonly ExtensionAttributeListing $extensionAttributeListing
     ) {
     }
-    
+
     /**
-     * @param object $target
+     * @param mixed $subject
      * @param ExtensibleDataInterface $entity
      * @return ExtensibleDataInterface
      */
-    public function afterGet($target, ExtensibleDataInterface $entity): ExtensibleDataInterface
+    public function afterGet(mixed $subject, ExtensibleDataInterface $entity): ExtensibleDataInterface
     {
-        $extensionAttributes = $this->getExtensionAttributesByEntity($entity);
-        foreach ($extensionAttributes as $extensionAttribute) {
-            $this->copyDataPropertyToExtensionAttribute($entity, $extensionAttribute);
-        }
-        
-        return $entity;
-    }
-    
-    /**
-     * @param object $target
-     * @param ExtensibleDataInterface $entity
-     * @return ExtensibleDataInterface
-     */
-    public function afterGetById($target, ExtensibleDataInterface $entity): ExtensibleDataInterface
-    {
-        return $this->afterGet($target, $entity);
-    }
-    
-    /**
-     * @param object $target
-     * @param SearchResultsInterface $searchResults
-     * @return SearchResultsInterface
-     */
-    public function afterGetList($target, SearchResultsInterface $searchResults): SearchResultsInterface
-    {
-        foreach ($searchResults->getItems() as $entity) {
-            $easierExtensionAttributes = $this->getExtensionAttributesByEntity($entity);
-            foreach ($easierExtensionAttributes as $extensionAttribute) {
-                $this->copyDataPropertyToExtensionAttribute($entity, $extensionAttribute);
-            }
-        }
-        
-        return $searchResults;
-    }
-    
-    /**
-     * @param $target
-     * @param ExtensibleDataInterface $entity
-     * @return ExtensibleDataInterface[]
-     */
-    public function beforeSave($target, ExtensibleDataInterface $entity)
-    {
-        $extensionAttributes = $this->getExtensionAttributesByEntity($entity);
-        foreach ($extensionAttributes as $extensionAttribute) {
-            $this->copyExtensionAttributeToDataProperty($entity, $extensionAttribute);
-        }
-        
-        return [$entity];
-    }
-    
-    /**
-     * @param ExtensibleDataInterface $entity
-     * @param ExtensionAttribute $extensionAttribute
-     * @return void
-     */
-    private function copyDataPropertyToExtensionAttribute(
-        ExtensibleDataInterface $entity,
-        ExtensionAttribute $extensionAttribute
-    ) {
-        if ($extensionAttribute->isStorageColumn()) {
+        foreach ($this->getExtensionAttributesByEntity($entity) as $extensionAttribute) {
             $this->copyDataAttributeToExtensionAttribute->execute(
                 $entity,
                 $extensionAttribute->getAttributeCode(),
@@ -98,32 +33,66 @@ class AddExtensionAttributesToEntity
                 $extensionAttribute->getStorageColumn(),
             );
         }
+
+        return $entity;
     }
-    
+
     /**
-     * @param ExtensionAttribute $extensionAttribute
+     * @param mixed $subject
+     * @param ExtensibleDataInterface $entity
+     * @return ExtensibleDataInterface
+     */
+    public function afterGetById(mixed $subject, ExtensibleDataInterface $entity): ExtensibleDataInterface
+    {
+        return $this->afterGet($subject, $entity);
+    }
+
+    /**
+     * @param mixed $subject
+     * @param SearchResultsInterface $searchResults
+     * @return SearchResultsInterface
+     */
+    public function afterGetList(mixed $subject, SearchResultsInterface $searchResults): SearchResultsInterface
+    {
+        if ($this->extensionAttributeListing->getAll() === []) {
+            return $searchResults;
+        }
+
+        foreach ($searchResults->getItems() as $entity) {
+            if ($entity instanceof ExtensibleDataInterface) {
+                $this->afterGet($subject, $entity);
+            }
+        }
+
+        return $searchResults;
+    }
+
+    /**
+     * @param mixed $subject
      * @param ExtensibleDataInterface $entity
      * @return void
      */
-    private function copyExtensionAttributeToDataProperty(
-        ExtensibleDataInterface $entity,
-        ExtensionAttribute $extensionAttribute
-    ) {
-        if ($extensionAttribute->isStorageColumn()) {
+    public function beforeSave(mixed $subject, ExtensibleDataInterface $entity): void
+    {
+        foreach ($this->getExtensionAttributesByEntity($entity) as $extensionAttribute) {
             $this->copyExtensionAttributeToDataAttribute->execute(
                 $entity,
                 $extensionAttribute->getAttributeCode(),
                 $extensionAttribute->getStorageColumn(),
+                $extensionAttribute->getAttributeType(),
             );
         }
     }
-    
+
     /**
      * @param ExtensibleDataInterface $entity
      * @return ExtensionAttributeInterface[]
      */
-    private function getExtensionAttributesByEntity(ExtensibleDataInterface $entity)
+    private function getExtensionAttributesByEntity(ExtensibleDataInterface $entity): array
     {
-        return $this->extensionAttributeListing->getByClass(get_class($entity));
+        return array_filter(
+            $this->extensionAttributeListing->getByClass(get_class($entity)),
+            fn (ExtensionAttributeInterface $extensionAttribute) => $extensionAttribute->isStorageColumn()
+        );
     }
 }

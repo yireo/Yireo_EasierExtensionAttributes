@@ -7,37 +7,38 @@ use Magento\Framework\Api\ExtensionAttributesInterface;
 
 class CopyExtensionAttributeToDataAttribute
 {
-    private SnakeCaseCamelCase $snakeCaseCamelCase;
-    
-    /**
-     * @param SnakeCaseCamelCase $snakeCaseCamelCase
-     */
     public function __construct(
-        SnakeCaseCamelCase $snakeCaseCamelCase
+        private readonly SnakeCaseCamelCase $snakeCaseCamelCase,
+        private readonly Caster $caster
     ) {
-        $this->snakeCaseCamelCase = $snakeCaseCamelCase;
     }
-    
-    /**
-     *
-     * @param ExtensibleDataInterface $entity
-     * @param string $attributeCode
-     * @param string $columnName
-     * @return void
-     */
-    public function execute(ExtensibleDataInterface $entity, string $attributeCode, string $columnName)
-    {
+
+    public function execute(
+        ExtensibleDataInterface $entity,
+        string $attributeCode,
+        string $columnName,
+        string $attributeType = ''
+    ): void {
         $extensionAttributes = $entity->getExtensionAttributes();
-        if (!$extensionAttributes instanceof ExtensionAttributesInterface) {
+        if (!$extensionAttributes instanceof ExtensionAttributesInterface || !is_callable([$entity, 'setData'])) {
             return;
         }
-        
-        $attributeMethod = $this->snakeCaseCamelCase->toGetter($attributeCode);
-        if (!method_exists($extensionAttributes, $attributeMethod)) {
+
+        $attributeGetter = $this->snakeCaseCamelCase->toGetter($attributeCode);
+        if (!is_callable([$extensionAttributes, $attributeGetter])) {
             return;
         }
-    
-        $attributeValue = call_user_func([$extensionAttributes, $attributeMethod]);
-        $entity->setData($columnName, (string)$attributeValue);
+
+        $attributeValue = $extensionAttributes->$attributeGetter();
+        if (!is_scalar($attributeValue)) {
+            return;
+        }
+
+        $attributeValue = $this->caster->cast($attributeType, $attributeValue);
+        if (is_bool($attributeValue)) {
+            $attributeValue = (int)$attributeValue;
+        }
+
+        $entity->setData($columnName, $attributeValue);
     }
 }
