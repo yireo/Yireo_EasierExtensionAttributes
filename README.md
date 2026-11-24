@@ -18,6 +18,11 @@
 
 For an example implementation, see [YireoTraining_EasierExtensionAttributesExample](https://github.com/yireo-training/YireoTraining_EasierExtensionAttributesExample), more specifically its `easier_extension_attributes.xml` which complements the regular `extension_attributes.xml`. For extending the MSI Source entity, it adds a column `example` to the `source` database table, which is then automatically filled with the Yireo EasierExtensionAttributes module.
 
+## Security notes
+- Every column mapped in `easier_extension_attributes.xml` becomes readable and writable through the REST and GraphQL APIs as an extension attribute. Restrict access by adding `<resources>` with an ACL resource to the attribute in your `extension_attributes.xml`.
+- Attribute codes and column names must match `[a-z][a-z0-9_]*` (max. 64 characters). Identity columns (like `entity_id`, `row_id`, `sku`, `source_code`, `attribute_set_id`, `store_id`) cannot be mapped. Invalid entries are skipped and logged.
+- When an extension attribute is not set (`null`) or not a scalar value, saving the entity leaves the existing column value untouched.
+
 ## TODO
 - Integration tests for `getList`, `save` and `getById`
 - Integration tests for additional repositories
